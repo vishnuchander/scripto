@@ -8,19 +8,18 @@ import java.io.*;
 import java.util.*;
 
 
-public class RunnerFrame extends JInternalFrame
-{
+public class RunnerFrame extends JInternalFrame {
 	Runner tailer;
-	public void begin()
-	{
+
+	public void begin() {
 		this.tailer.start();
 	}
-	RunnerFrame()
-	{
+
+	RunnerFrame() {
 		tailer = new Runner();
 	}
-	RunnerFrame(Func a, ArrayList<Func> b)
-	{
+
+	RunnerFrame(Func a, ArrayList<Func> b) {
 		tailer = new Runner();
 		tailer.mainfunc = a;
 		tailer.funcs = b;

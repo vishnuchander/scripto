@@ -18,53 +18,45 @@ public class Func
 	boolean separate;
 	Robot r;
 	int times;
-	public Func(String n)
-	{
+
+	public Func(String n) {
 		name = n;
 		cmds = new ArrayList<Command>();
 		counters = new ArrayList<Counter>();
 		locs = new ArrayList<Location>();
 		funcs = new ArrayList<Func>();
 		comparisons = new ArrayList<Command>();
-		try
-		{
+
+		try {
 			r = new Robot();
-		}
-		catch (Exception ex)
-		{
+		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 		times = 1;
 		separate = false;
 	}
-	public void runFunc(int index)
-	{
+	public void runFunc(int index) {
 		funcs.get(index).doStuff();
 	}
-	public void addCommand(Command k)
-	{
+	public void addCommand(Command k) {
 		cmds.add(k);
 	}
-	private void fpause(int time)
-	{
-		try
-		{
+	private void fpause(int time) {
+		try {
 			Thread.sleep(time);
-		}
-		catch (Exception ex)
-		{
+		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 	}
 	protected void naturalmove(Point p)
 	{
 		Point c = MouseInfo.getPointerInfo().getLocation();
-		if(c == p) return;
+		if (c == p) return;
 		int mx = 0, my = 0;
+
 		mx = (c.x - p.x)/20;
 		my = (c.y - p.y)/20;
-		for(int i = 0; i < 20; i++)
-		{	
+		for (int i = 0; i < 20; i++) {	
 			c = MouseInfo.getPointerInfo().getLocation();
 			r.mouseMove(c.x - mx, c.y - my);
 			fpause(10);
@@ -72,33 +64,27 @@ public class Func
 		r.mouseMove(p.x, p.y);
 		
 	}
-	private void naturalClick(int a)
-	{
+	private void naturalClick(int a) {
 		r.mousePress(a);
 		fpause(100);
 		r.mouseRelease(a);
 		fpause(100);
 	}
-	protected void check(Command k)
-	{
+	protected void check(Command k) {
 		Color p = r.getPixelColor(colors.get(k.index).x, colors.get(k.index).y);
 		System.out.println(p.toString());
 		System.out.println(colors.get(k.index).color.toString());
-		if(k.comparetoint)
-		{
+
+		if (k.comparetoint) {
 			if(p.equals(colors.get(k.index).color)) return;
 			funcs.get(k.funcindex).doStuff();
-		}
-		else
-		{
+		} else {
 			if(!p.equals(colors.get(k.index).color)) return;
 			funcs.get(k.funcindex).doStuff();
 		}
 	}
-	protected void execute(Command k)
-	{
-		switch (k.cmd)
-		{
+	protected void execute(Command k) {
+		switch (k.cmd) {
 			case "mv": r.mouseMove(locs.get(k.index).x, locs.get(k.index).y); break;
 			case "nm": naturalmove(locs.get(k.index)); break;
 			case "ck": r.mousePress(k.index); r.mouseRelease(k.index); break;
@@ -122,42 +108,33 @@ public class Func
 			case "ch": check(k); break;
 		}
 	}
-	void cmp(Command k)
-	{
+	void cmp(Command k) {
 		int comparevalue;
-		if(k.comparetoint)
-		{
+		if (k.comparetoint) {
 			comparevalue = k.comparison;
-		}
-		else
-		{
+		} else {
 			comparevalue = counters.get(k.comparison).num;
 		}
 		compare(k.cmd, counters.get(k.index).num, comparevalue, k.funcindex);
 	}
-	private void compare(String cmd, int a, int b, int index)
-	{
-		switch (cmd)
-		{
-			case "gt": if(!(a > b)) {return;} break;
-			case "ge": if(!(a >= b)) {return;} break;
-			case "eq": if(!(a == b)) {return;} break;
-			case "le": if(!(a <= b)) {return;} break;
-			case "lt": if(!(a < b)) {return;} break;
-			case "ne": if(a == b) {return;} break;
+	private void compare(String cmd, int a, int b, int index) {
+		switch (cmd) {
+			case "gt": if (!(a > b)) {return;} break;
+			case "ge": if (!(a >= b)) {return;} break;
+			case "eq": if (!(a == b)) {return;} break;
+			case "le": if (!(a <= b)) {return;} break;
+			case "lt": if (!(a < b)) {return;} break;
+			case "ne": if (a == b) {return;} break;
 		}
 		execute(comparisons.get(index));
 	}
-	public void doStuff()
-	{
+	public void doStuff() {
 		int i = 1; 
-		while(true)
-		{
-			for(Command k: cmds)
-			{
+		while (true) {
+			for (Command k: cmds) {
 				execute(k);
 			}
-			if((times != -1) && (i == times)) break;
+			if ((times != -1) && (i == times)) break;
 			i++;
 		}
 	}
