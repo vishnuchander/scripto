@@ -147,8 +147,10 @@ USAGE: thread [at least one function name]
 
 -gt/ge/eq/le/lt/ne: Conditional logic functions. Greater Than, Greater than or Equal to, EQual, Less than or Equal to, Less Than, Not Equal. Compares two counters' values. Executes a function if the statement evaluates to true. 
 
-USAGE: gt/ge/eq/le/lt/ne [counter name] [integer or counter name] [function to execute if true]
+USAGE: gt/ge/eq/le/lt/ne [counter name] [integer or counter name] [command to execute if true]
 
-EXAMPLE: 
-gt MyCounter 1 ComputeResult
-comment the above statement compares MyCounter to 1. If MyCounter ] 1, it will execute ComputResult. 
+EXAMPLE: gt MyCounter 1 run ComputeResult
+
+-ushift/dshift/lshift/rshift: up/down/left/right shift functions for Points. 
+
+USAGE: ushift [Point] [number of pixels to shift]

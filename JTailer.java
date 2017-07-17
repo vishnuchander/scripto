@@ -7,11 +7,10 @@ import javax.swing.*;
 import java.io.*;
 import java.util.*;
 
-public class JTailer extends JFrame implements ActionListener
-{
+public class JTailer extends JFrame implements ActionListener {
 	private JDesktopPane desktop = new JDesktopPane();
 	private JMenuBar menuBar = new JMenuBar();
-	private JMenuItem menuOpenScript = new JMenuItem( "Open script file" );
+	private JMenuItem menuOpenScript = new JMenuItem("Open script file");
 	private JButton StartorStop;
 	private JPanel buttonPanel;
 	private DrawStuff drawPanel = new DrawStuff();
@@ -28,62 +27,60 @@ public class JTailer extends JFrame implements ActionListener
 	ArrayList<RunnerFrame> threads; 
 	Func m;
 	RunnerFrame runthread;
-	public class msg extends JPanel
-	{
+
+	public class msg extends JPanel {
 		JLabel a;
-		public msg (String item)
-		{
+		public msg (String item) {
 			a = new JLabel(item);
 			add(a);
 		}
 	}
-	public JTailer()
-	{
+	public JTailer() {
 		init(null);
 	}
-	public JTailer(String[] filename)
-	{
+
+	public JTailer(String[] filename) {
 		init(filename);
 	}
-	private void popUp(String m)
-	{
+
+	private void popUp(String m) {
 		msg mesg = new msg(m);
 		JOptionPane.showMessageDialog(this, mesg);
-	}
-	private void eMsg(int ln, String reason, String fn)
-	{
+	} 
+
+	private void eMsg(int ln, String reason, String fn) {
 		System.out.println("File " + fn + ": bad command on line " + ln + ". " + reason + ".");
 		popUp("File " + fn + ": bad command on line " + ln + ". " + reason + ".");
 		System.exit(1);
 	}
-	private Location getPt(String name)
-	{
+
+	private Location getPt(String name) {
 		Point p = new Point();
 		popUp("Press enter with your cursor over point " + name + ".");
 		p = MouseInfo.getPointerInfo().getLocation();		
 		return new Location(name, p.x, p.y);
 	}
-	private Location getPt2(String name)
-	{
+
+	private Location getPt2(String name) {
 		System.out.printf("Press Enter with cursor over point " + name + ".");
 		Scanner keyboard = new Scanner(System.in);
 		keyboard.nextLine();
 		Point p = MouseInfo.getPointerInfo().getLocation();
 		return new Location(name, p.x, p.y);
 	}
-	private Location getPix(String name)
-	{
+
+	private Location getPix(String name) {
 		Point p = new Point();
+
 		popUp("Press enter with your cursor over pixel " + name + ".");
 		p = MouseInfo.getPointerInfo().getLocation();
 		Color k = robot.getPixelColor(p.x, p.y);
 		System.out.println(k);
 		return new Location(name, p.x, p.y, k);
 	}
-	int parseKey(String token)
-	{
-		switch (token.toLowerCase())
-		{
+
+	int parseKey(String token) {
+		switch (token.toLowerCase()) {
 			case "a": return KeyEvent.VK_A;
 			case "b": return KeyEvent.VK_B;
 			case "c": return KeyEvent.VK_C;
@@ -184,388 +181,478 @@ public class JTailer extends JFrame implements ActionListener
 		}
 		return -1;
 	}
-	private void parseFunc(Scanner line, int ln, String fn)
-	{
-		if(!line.hasNext()) eMsg(ln, "Not enough parameters", fn);
+
+	private void parseFunc(Scanner line, int ln, String fn) {
+		if (!line.hasNext()) 
+			eMsg(ln, "Not enough parameters", fn);
+
 		String token;
-		while(line.hasNext())
-		{
-			if(line.hasNextInt() || line.hasNextDouble())
-			{
+
+		while (line.hasNext()) {
+			if (line.hasNextInt() || line.hasNextDouble()) {
 				token = parse(line, ln, fn);
 				eMsg(ln, "Bad function name: " + token, fn);
-			}
+			} 
+
 			token = parse(line, ln, fn);
-			if(isFound(token, ln, fn) != -1)
-			{
+
+			if (isFound(token, ln, fn) != -1) {
 				eMsg(ln, "Function already found with name " + token, fn);
 			}
+
 			funcs.add(new Func(token));
 		}
 	}
-	String parse(Scanner line, int ln, String fn)
-	{
-		if (!line.hasNext()) eMsg(ln, "Not enough parameters", fn);
+
+	String parse(Scanner line, int ln, String fn) {
+		if (!line.hasNext()) 
+			eMsg(ln, "Not enough parameters", fn);
+
 		String token = line.next();
 		return token;
 	}
-	Command check(String token, Scanner line, int ln, String fn, boolean ne)
-	{
+
+	Command check(String token, Scanner line, int ln, String fn, boolean ne) {
 		token = parse(line, ln, fn);
 		int rv = isColor(token);
-		if(rv == -1) eMsg(ln, "PixelGrabber " + token + " not found", fn);
+
+		if (rv == -1) 
+			eMsg(ln, "PixelGrabber " + token + " not found", fn);
+
 		token = parse(line, ln, fn);
 		int rv2 = isFound(token, ln, fn);
-		if(rv2 == -1) eMsg(ln, "Function " + token + " not found", fn);
+
+		if (rv2 == -1) 
+			eMsg(ln, "Function " + token + " not found", fn);
+
 		return new Command("ch", rv, rv2, ne);
 	}
-	Command cmp(String token, Scanner line, int ln, String fn)
-	{
+
+	Command cmp(String token, Scanner line, int ln, String fn) {
 		//syntax:
 		//(compare function) (counter1) (some integer) (func to run)
 		//(compare function) (counter1) (counter2) (func to run)
 		//if counter1 (compare function) counter2/integer run func
+
 		String cmd = token;
 		token = parse(line, ln, fn);
 		int rv = findCounter(token); //rv holds the index of counter1
-		if(rv == -1) eMsg(ln, "Counter " + token + " not found", fn);
-		if(!line.hasNext()) eMsg(ln, "Not enough parameters", fn);
+
+		if (rv == -1) 
+			eMsg(ln, "Counter " + token + " not found", fn);
+		if (!line.hasNext()) 
+			eMsg(ln, "Not enough parameters", fn);
+
 		int comparison;
 		String param;
 		boolean comparetoint;
-		if(line.hasNextInt())
-		{
+
+		if (line.hasNextInt()) {
 			comparison = line.nextInt(); //comparison = number
 			param = null;
 			comparetoint = true;
-		}
-		else
-		{
+		} else {
 			param = line.next();
 			comparison = findCounter(param); //comparison = index2
-			if(comparison == -1) eMsg(ln, "Counter " + param + " not found", fn);
+			if (comparison == -1) 
+				eMsg(ln, "Counter " + param + " not found", fn);
 			comparetoint = false;
 		}
-		if(!line.hasNext()) eMsg(ln, "Not enough parameters", fn);
+
+		if (!line.hasNext()) 
+			eMsg(ln, "Not enough parameters", fn);
 		/*int r2 = isFound(line.next(), ln, fn);
 		if(r2 == -1) eMsg(ln, "Function not found", fn);*/
 		int r2 = createComparison(new Scanner(getString(line)), ln, fn);
 		return new Command(cmd, param, rv, comparison, r2, comparetoint);
 	}
-	private int createComparison(Scanner line, int ln, String fn)
-	{
-		//private void parseLine(Scanner line, ArrayList<Command> thread, int ln, String fn)
-		if(!line.hasNext()) eMsg(ln, "Not enough parameters", fn);
+
+	private int createComparison(Scanner line, int ln, String fn) {
+		if (!line.hasNext()) 
+			eMsg(ln, "Not enough parameters", fn);
+
 		parseLine(line, comparisons, ln, fn);
 		return comparisons.size() - 1;		
 	}
-	private void incrementer(Scanner line, int ln, ArrayList<Command> thread, String fn)
-	{
-		if(!line.hasNext()) eMsg(ln, "Not enough parameters", fn);
+
+	private void incrementer(Scanner line, int ln, ArrayList<Command> thread, String fn) {
+		if (!line.hasNext()) 
+			eMsg(ln, "Not enough parameters", fn);
+
 		String token;
 		int rv;
-		while(line.hasNext())
-		{
-			if(line.hasNextInt())
-			{
+
+		while (line.hasNext()) {
+			if (line.hasNextInt()) {
 				token = parse(line, ln, fn);
 				eMsg(ln, "Bad counter name: " + token, fn);
 			}
+
 			token = parse(line, ln, fn);
 			rv = findCounter(token);
-			if(rv == -1) eMsg(ln, "Counter not found", fn);
+
+			if (rv == -1) 
+				eMsg(ln, "Counter not found", fn);
+
 			thread.add(new Command("in", rv));	
 		}
 	}
-	private void decrementer(Scanner line, int ln, ArrayList<Command> thread, String fn)
-	{
-		if(!line.hasNext()) eMsg(ln, "Not enough parameters", fn);
+
+	private void decrementer(Scanner line, int ln, ArrayList<Command> thread, String fn) {
+		if (!line.hasNext()) 
+			eMsg(ln, "Not enough parameters", fn);
+
 		String token;
 		int rv;
-		while(line.hasNext())
-		{
-			if(line.hasNextInt())
-			{
+
+		while (line.hasNext()) {
+			if (line.hasNextInt()) {
 				token = parse(line, ln, fn);
 				eMsg(ln, "Bad counter name: " + token, fn);
 			}
+
 			token = parse(line, ln, fn);
 			rv = findCounter(token);
-			if(rv == -1) eMsg(ln, "Counter not found", fn);
+
+			if (rv == -1) 
+				eMsg(ln, "Counter not found", fn);
+
 			thread.add(new Command("dc", rv));	
 		}
 	}
-	private void pointCreator(Scanner line, int ln, String fn, boolean pop)
-	{
+
+	private void pointCreator(Scanner line, int ln, String fn, boolean pop) {
 		String token;
-		if(!line.hasNext()) eMsg(ln, "Not enough parameters", fn);
-		while(line.hasNext())
-		{
-			if(line.hasNextInt() || line.hasNextDouble())
-			{
+
+		if (!line.hasNext()) 
+			eMsg(ln, "Not enough parameters", fn);
+
+		while(line.hasNext()) {
+			if (line.hasNextInt() || line.hasNextDouble()) {
 				token = parse(line, ln, fn);
 				eMsg(ln, "Bad point name: " + token, fn);
 			}
+
 			token = parse(line, ln, fn);
-			if(isPoint(token) != -1)
-			{
+			if (isPoint(token) != -1) 
 				eMsg(ln, "Point already found with name " + token, fn);
-			}
+
 			if(pop) locs.add(getPt(token));
 			if(!pop) locs.add(getPt2(token));
 		}	
 	}
-	private void pixelGrabber(Scanner line, int ln, String fn)
-	{
+
+	private void pixelGrabber(Scanner line, int ln, String fn) {
 		String token;
-		if(!line.hasNext()) eMsg(ln, "Not enough parameters", fn);
-		while(line.hasNext())
-		{
-			if(line.hasNextInt() || line.hasNextDouble())
-			{
+		if (!line.hasNext()) 
+			eMsg(ln, "Not enough parameters", fn);
+
+		while (line.hasNext()) {
+			if(line.hasNextInt() || line.hasNextDouble()) {
 				token = parse(line, ln, fn);
 				eMsg(ln, "Bad point name: " + token, fn);
 			}
+
 			token = parse(line, ln, fn);
-			if(isColor(token) != -1)
-			{
+			if(isColor(token) != -1) 
 				eMsg(ln, "PixelGrabber already found with name " + token, fn);
-			}
+
 			colors.add(getPix(token));			
 		}
 	}
-	private Command move(Scanner line, int ln, String fn)
-	{
+
+	private Command move(Scanner line, int ln, String fn) {
 		String token = parse(line, ln, fn);
 		int rv = isPoint(token);
-		if (rv == -1) eMsg(ln, "Point " + token + " not found", fn);
+
+		if (rv == -1) 
+			eMsg(ln, "Point " + token + " not found", fn);
+
 		String k = "nm";
-		if (token.equals("move")) k = "mv";
+
+		if (token.equals("move")) 
+			k = "mv";
+
 		return new Command(k, rv);
 	}
-	Command click(Scanner line, int ln, String token, String fn)
-	{
+
+	Command click(Scanner line, int ln, String token, String fn) {
 		int rv = 0;
-		if (line.hasNext()) eMsg(ln, "Too many parameters", fn);
+		if (line.hasNext()) 
+			eMsg(ln, "Too many parameters", fn);
 		String k;
-		if (token.contains("middle"))
-		{
+
+		if (token.contains("middle")) {
 			rv = InputEvent.BUTTON2_MASK;
-		}
-		else if (token.contains("right"))
-		{
+		} else if (token.contains("right")) {
 			rv = InputEvent.BUTTON3_MASK;
-		}
-		else
-		{
+		} else {
 			rv = InputEvent.BUTTON1_MASK;
 		}
-		if (token.contains("click"))
-		{
+
+		if (token.contains("click")) {
 			k = "ck";
-		}
-		else if (token.contains("down"))
-		{
+		} else if (token.contains("down")) {
 			k = "md";
-		}
-		else
-		{
+		} else {
 			k = "mr";
 		}
+
 		return new Command(k, rv);
 	}
-	int pInt(String token, int ln, String fn)
-	{
+
+	int pInt(String token, int ln, String fn) {
 		int retval = 0;
-		try
-		{
+		try {
 			retval = Integer.parseInt(token);
-		}
-		catch (NumberFormatException ex)
-		{
+		} catch (NumberFormatException ex) {
 			eMsg(ln, "Parameter must be a number", fn);
 		}
 		return retval;
 	}
-	Command wait(Scanner line, int ln, String token, String fn)
-	{ //wait (time to wait)
+
+	Command wait(Scanner line, int ln, String token, String fn) { 
+		//wait (time to wait)
 		//add wt as cmd, token as param if integer
+
 		int n = pInt(parse(line, ln, fn), ln, fn);
-		if (line.hasNext()) eMsg(ln, "Too many parameters", fn);
+
+		if (line.hasNext()) 
+			eMsg(ln, "Too many parameters", fn);
+
 		String k = "rw";
-		switch (token)
-		{
-			case "wait": k = "wt";
-		}
+		if (token.equals("wait"))
+			k = "wt";
 		return new Command(k, n);
 	}
-	Command KP(Scanner line, int ln, String token, String fn)
-	{
+
+	Command KP(Scanner line, int ln, String token, String fn) {
 		String k;
-		switch (token)
-		{
+		switch (token) {
 			case "keypress": k = "kp"; break;
 			case "keydown": k = "kd"; break;
 			default: k = "ku"; break;
 		}
+
 		token = parse(line, ln, fn);
 		int rv = parseKey(token);
-		if (rv == -1) eMsg(ln, "Bad key", fn);
+
+		if (rv == -1)
+			eMsg(ln, "Bad key", fn);
+
 		return new Command(k, rv);
 	}
-	Command shift(String token, Scanner line, int ln, String fn)
-	{	//dummy function for now. This will need to parse the line and then extract information from it, like what is being shifted.
-		switch(token)
-		{
-			case "lshift": return new Command(token); 
-			case "rshift": return new Command(token); 
-			case "ushift": return new Command(token); 
-			default: return new Command(token); 
-			
+
+	Command shift(String token, Scanner line, int ln, String fn) {
+		//This allows shifting a point's coordinates left, up, right, or down after it has been set.
+		String direction = token;
+		token = parse(line, ln, fn);
+		int rv = isPoint(token);
+		if (rv == -1) 
+			eMsg(ln, "Point " + token + " not found", fn);
+
+		switch(direction) {
+			case "lshift": 
+				return new Command("sl", rv, pInt(parse(line, ln, fn), ln, fn));
+			case "rshift": 
+				return new Command("sr", rv, pInt(parse(line, ln, fn), ln, fn));
+			case "ushift": 
+				return new Command("su", rv, pInt(parse(line, ln, fn), ln, fn));
+			default: 
+				return new Command("sd", rv, pInt(parse(line, ln, fn), ln, fn));
 		}
 	}
-	void logF(Scanner line, int ln, String fn)
-	{ 	//structure: lf (log file name) (path/to/log/file)
-		if(!line.hasNext()) eMsg(ln, "Not enough parameters", fn);
-		if(line.hasNextInt() || line.hasNextDouble()) eMsg(ln, "Log name cannot be a number", fn);
+
+	void logF(Scanner line, int ln, String fn) { 	
+		//structure: lf (log file name) (path/to/log/file)
+		if (!line.hasNext()) 
+			eMsg(ln, "Not enough parameters", fn);
+		if (line.hasNextInt() || line.hasNextDouble()) 
+			eMsg(ln, "Log name cannot be a number", fn);
+
 		String token = parse(line, ln, fn); //log file name
 		String filename = parse(line, ln, fn);
-		if (findTailer(token) != -1) eMsg(ln, "Log Reader already found with that name", fn);
+
+		if (findTailer(token) != -1) 
+			eMsg(ln, "Log Reader already found with that name", fn);
+
 		TailerFrame searcher = new TailerFrame(filename, token);
 		this.desktop.add(searcher);
 		frames.add(searcher);
 		System.out.println("Adding log file " + token + " for " + filename);
 	}
-	void makeLFT(Scanner line, int ln, String fn)
-	{
-		if(!line.hasNext()) eMsg(ln, "Not enough parameters", fn);
+
+	void makeLFT(Scanner line, int ln, String fn) {
+		if (!line.hasNext()) 
+			eMsg(ln, "Not enough parameters", fn);
 		String token;
 		String filename;
-		while(line.hasNext())
-		{
-			if(line.hasNextInt() || line.hasNextDouble())
-			{
+
+		while (line.hasNext()) {
+			if(line.hasNextInt() || line.hasNextDouble()) {
 				token = parse(line, ln, fn);
 				eMsg(ln, "Bad log name: " + token, fn);
 			}
+
 			token = parse(line, ln, fn);
+
 			//create a TailerFrame with name token and add it to the list of frames
 			//LogFileTailer must start executing immediately after script file is parsed
+
 			popUp("Open log file for Log Reader " + token + ".");
 			JFileChooser fc = new JFileChooser();
-			int retval = fc.showOpenDialog( this );
-			if (findTailer(token) != -1) eMsg(ln, "Log Reader already found with that name", fn);
-			if( retval == JFileChooser.APPROVE_OPTION )
-			{
+			int retval = fc.showOpenDialog(this);
+
+			if (findTailer(token) != -1) 
+				eMsg(ln, "Log Reader already found with that name", fn);
+
+			if(retval == JFileChooser.APPROVE_OPTION) {
 				filename = fc.getSelectedFile().getAbsolutePath();
 				TailerFrame searcher = new TailerFrame(filename, token);
-				this.desktop.add( searcher );
+				this.desktop.add(searcher);
 				frames.add(searcher);
 				System.out.println("Adding log reader " + token);
-			}
-			else
-			{
+			} else {
 				eMsg(ln, "Must provide logfile file for " + token, fn);
 			}
 		}
 	}
-	void logRun(Scanner line, int ln, String fn)
-	{
+
+	void logRun(Scanner line, int ln, String fn) {
 		//structure: 
 		//"logrun" "threadname" "funcname" "rest of the string that is the condition upon which funcname is executed"
+
 		int rv = findTailer(parse(line, ln, fn)); //gets index of the TailerFrame in frames
-		if (rv == -1) eMsg(ln, "Log Reader not found", fn);
+
+		if (rv == -1) 
+			eMsg(ln, "Log Reader not found", fn);
+
 		int r2 = isFound(parse(line, ln, fn), ln, fn);
-		if (r2 == -1) eMsg(ln, "Function not found", fn);
-		if (!line.hasNext()) eMsg(ln, "Not enough parameters", fn);
+
+		if (r2 == -1) 
+			eMsg(ln, "Function not found", fn);
+		if (!line.hasNext()) 
+			eMsg(ln, "Not enough parameters", fn);
+
 		frames.get(rv).addCond(getString(line), r2);
 	}
-	void makeCounters(Scanner line, int ln, String fn)
-	{
-		if(!line.hasNext()) eMsg(ln, "Not enough parameters", fn); //if there are 0 parameters
+
+	void makeCounters(Scanner line, int ln, String fn) {
+		if (!line.hasNext()) 
+			eMsg(ln, "Not enough parameters", fn); //if there are 0 parameters
+
 		String token;
-		while(line.hasNext())
-		{
-			if(line.hasNextInt() || line.hasNextDouble())
-			{
+
+		while(line.hasNext()) {
+			if (line.hasNextInt() || line.hasNextDouble()) {
 				token = parse(line, ln, fn);
 				eMsg(ln, "Bad counter name: " + token, fn);
 			}
+
 			token = parse(line, ln, fn);
-			if (findCounter(token) != -1) eMsg(ln, "Counter already found with that name", fn);
+
+			if (findCounter(token) != -1) 
+				eMsg(ln, "Counter already found with that name", fn);
+
 			System.out.println("Adding counter " + token);
 			Counter k = new Counter(0, token);
 			counters.add(k);
 		}
 	}
-	Command set(Scanner line, int ln, String token, String fn, boolean random)
-	{
-		if(!line.hasNext()) eMsg(ln, "Not enough parameters", fn);
+
+	Command set(Scanner line, int ln, String token, String fn, boolean random) {
+		if (!line.hasNext()) 
+			eMsg(ln, "Not enough parameters", fn);
+
 		token = line.next();
 		int rv = findCounter(token);
-		if(rv == -1) eMsg(ln, "Counter not found", fn);
-		if(!line.hasNext()) eMsg(ln, "Not enough parameters", fn);
-		if(!line.hasNext()) eMsg(ln, "Parameter must be a number", fn);
+
+		if (rv == -1) 
+			eMsg(ln, "Counter not found", fn);
+		if (!line.hasNext()) 
+			eMsg(ln, "Not enough parameters", fn);
+		if (!line.hasNextInt()) 
+			eMsg(ln, "Parameter must be a number", fn);
+
 		token = line.next();
-		if(line.hasNext()) eMsg(ln, "Too many parameters", fn);
-		if(random) return new Command("rs", token, rv);
+		if (line.hasNext()) 
+			eMsg(ln, "Too many parameters", fn);
+
+		if (random) 
+			return new Command("rs", token, rv);
+
 		return new Command("st", token, rv);
 	}
-	void runFunc(Scanner line, int ln, ArrayList<Command> thread, String fn)
-	{
+
+	void runFunc(Scanner line, int ln, ArrayList<Command> thread, String fn) {
 		String token;
 		int rv;
-		if(!line.hasNext()) eMsg(ln, "Not enough parameters", fn); //if there are 0 parameters
-		while(line.hasNext())
-		{
-			if(line.hasNextInt())
-			{
+
+		if (!line.hasNext()) 
+			eMsg(ln, "Not enough parameters", fn); //if there are 0 parameters
+
+		while(line.hasNext()) {
+			if(line.hasNextInt()) {
 				token = parse(line, ln, fn);
 				eMsg(ln, "Bad function name: " + token, fn);
 			}
+
 			token = parse(line, ln, fn);
 			rv = isFound(token, ln, fn);
-			if(rv == -1) eMsg(ln, "Function " + token + " not found", fn);
+
+			if (rv == -1) 
+				eMsg(ln, "Function " + token + " not found", fn);
+
 			thread.add(new Command("rn", rv));
 		}
 	}
-	void repeat(Scanner line, int ln, String token, String fn)
-	{ // rpt|brpt (number of times) [func]
+
+	void repeat(Scanner line, int ln, String token, String fn) { 
+		// rpt|brpt (number of times) [func]
+
 		String cmd = token;
 		int times = pInt(parse(line, ln, fn), ln, fn);
 		int rv = -1;
-		if (token.equals("brpt"))
-		{
+
+		if (token.equals("brpt")) {
 			token = parse(line, ln, fn);
 			rv = isFound(token, ln, fn);
-			if (rv == -1) eMsg(ln, "Function " + token + " not found", fn);
+			if (rv == -1) 
+				eMsg(ln, "Function " + token + " not found", fn);
 		}
-		if (times < 0) eMsg(ln, "Number of repetitions cannot be negative", fn);
-		if (times == 0) times = -1;
-		if (rv == -1)
-		{
+
+		if (times < 0) 
+			eMsg(ln, "Number of repetitions cannot be negative", fn);
+
+		if (times == 0) 
+			times = -1;
+
+		if (rv == -1) {
 			m.times = times;
 			return;
 		}
+
 		funcs.get(rv).times = times;
 	}
-	void readScripts(ArrayList<Command> thread, Scanner line, int ln, String fn)
-	{
+
+	void readScripts(ArrayList<Command> thread, Scanner line, int ln, String fn) {
 		String token = parse(line, ln, fn);
 		parseScript(token, thread);
-		while(line.hasNext())
-		{
+
+		while(line.hasNext()) {
 			token = parse(line, ln, fn);
 			parseScript(token, thread);
 		}
 	}
-	private void parseLine(Scanner line, ArrayList<Command> thread, int ln, String fn)
-	{
-		if(!line.hasNext()) return;
+
+	private void parseLine(Scanner line, ArrayList<Command> thread, int ln, String fn) {
+		if (!line.hasNext()) 
+			return;
+
 		String token = line.next();
 		int rv;
-		switch(token)
-		{
+
+		switch(token) {
 			case "point": pointCreator(line, ln, fn, true); break;
 			case "spnp": pointCreator(line, ln, fn, false); break;
 			case "move": case "naturalmove": thread.add(move(line, ln, fn)); break;
@@ -602,169 +689,183 @@ public class JTailer extends JFrame implements ActionListener
 		line.close();
 	}
 	
-	void killThreads(Scanner line, int ln, String fn, ArrayList<Command> thread)
-	{
+	void killThreads(Scanner line, int ln, String fn, ArrayList<Command> thread) {
 		//this is wrong. the kill command should kill threads but not all functions are threads
 		//This should search the list of threads, not the list of functions. if the thread is found, add a command to kill it.
+
 		String token;
-		if(!line.hasNext())
-		{
+
+		if (!line.hasNext())
 			thread.add(new Command("kl", -1)); //kill main thread, this part is correct
-		}
-		while(line.hasNext())
-		{
+		
+		while (line.hasNext()) {
 			token = parse(line, ln, fn);
 			int rv = isFound(token, ln, fn);
-			if(rv == -1) eMsg(ln, "Thread " + token + " not found", fn);
+			if (rv == -1) 
+				eMsg(ln, "Thread " + token + " not found", fn);
 		}
 	}
-	void makeNewThread(Scanner line, int ln, String fn)
-	{
-		if(!line.hasNext()) eMsg(ln, "Not enough parameters", fn);
+
+	void makeNewThread(Scanner line, int ln, String fn) {
+		if (!line.hasNext()) 
+			eMsg(ln, "Not enough parameters", fn);
+
 		String name;
 		int rv;
-		while(line.hasNext())
-		{
+
+		while (line.hasNext()) {
 			name = parse(line, ln, fn);
-			if((rv = isFound(name, ln, fn)) == -1) eMsg(ln, "Function " + name + " not found", fn);
+			if ((rv = isFound(name, ln, fn)) == -1) 
+				eMsg(ln, "Function " + name + " not found", fn);
 			funcs.get(rv).separate = true;
 		}
 	}
-	void lastCase(Scanner line, String token, int ln, String fn)
-	{
+
+	void lastCase(Scanner line, String token, int ln, String fn) {
 		int rv;
-		if((rv = isFound(token, ln, fn)) != -1)
-		{
-			if(!line.hasNext()) eMsg(ln, "Function found but not enough parameters", fn);
+		if ((rv = isFound(token, ln, fn)) != -1) {
+			if (!line.hasNext()) 
+				eMsg(ln, "Function found but not enough parameters", fn);
 			parseLine(new Scanner(getString(line)), funcs.get(rv).cmds, ln, fn);
-		}
-		else
-		{
+		} else {
 			eMsg(ln, "Line is unreadable, bad token: " + token, fn);
 		}
 	}
-	void cPrint(Scanner line, int ln, String fn, ArrayList<Command> thread, boolean l)
-	{
+
+	void cPrint(Scanner line, int ln, String fn, ArrayList<Command> thread, boolean l) {
 		String token;
 		int rv;
-		if(!line.hasNext()) eMsg(ln, "Not enough parameters", fn);
-		while(line.hasNext())
-		{
-			if(line.hasNextInt() || line.hasNextDouble())
-			{
+
+		if (!line.hasNext()) 
+			eMsg(ln, "Not enough parameters", fn);
+
+		while (line.hasNext()) {
+			if (line.hasNextInt() || line.hasNextDouble()) {
 				token = parse(line, ln, fn);
 				eMsg(ln, "Bad point name: " + token, fn);
 			}
+
 			token = parse(line, ln, fn);
 			rv = findCounter(token);
-			if(rv == -1) eMsg(ln, "Counter " + token + " not found", fn);
+
+			if (rv == -1) 
+				eMsg(ln, "Counter " + token + " not found", fn);
+
 			System.out.println("L IS " + l);
-			if(!l) thread.add(new Command("pc", rv));
-			if(l) thread.add(new Command("lc", rv));
+
+			if (!l) 
+				thread.add(new Command("pc", rv));
+			if (l) 
+				thread.add(new Command("lc", rv));
 		}
 	}
-	int isFound(String name, int ln, String fn)
-	{
+
+	int isFound(String name, int ln, String fn) {
 		int i = 0;
-		for(Func b: funcs)
-		{
-			if (name.equals(b.name))
-			{
+
+		for (Func b: funcs) {
+			if (name.equals(b.name)) 
 				return i;
-			}
 			i++;
 		}
+
 		return -1;
 	}
-	private int isPoint(String token)
-	{
+
+	private int isPoint(String token) {
 		int i = 0;
-		for(Location l:locs)
-		{
-			if(l.getName().equals(token)) return i;
+
+		for (Location l:locs) {
+			if (l.getName().equals(token)) 
+				return i;
 			i ++;
 		}
+
 		return -1;
 	}
-	private int isColor(String token)
-	{
+
+	private int isColor(String token) {
 		int i = 0;
-		for(Location l:colors)
-		{
-			if(l.getName().equals(token)) return i;
+
+		for (Location l:colors) {
+			if(l.getName().equals(token)) 
+				return i;
 			i++;
 		}
+
 		return -1;
 	}
-	private int findCounter(String name)
-	{
+
+	private int findCounter(String name) {
 		int i = 0; 
-		for(Counter k: counters)
-		{
-			if(k.name.equals(name)) return i;
+
+		for (Counter k:counters) {
+			if(k.name.equals(name)) 
+				return i;
 			i++;
 		}
 		return -1;
 	}
-	private int findTailer(String name)
-	{
+
+	private int findTailer(String name) {
 		int i = 0;
-		for(TailerFrame f: frames)
-		{
-			if(f.name.equals(name)) return i;
+		
+		for (TailerFrame f:frames) {
+			if(f.name.equals(name)) 
+				return i;
 			i ++;
 		}
 		return -1;
 	}
-	private String getString(Scanner line)
-	{
-		if(!line.hasNext()) return null;
+
+	private String getString(Scanner line) {
+		if (!line.hasNext()) 
+			return null;
+
 		String retval = line.next();
-		while(line.hasNext())
-		{
+
+		while(line.hasNext()) 
 			retval += " " + line.next();
-		}
+
 		return retval;
 	}
-	private void parseScript(String filename, ArrayList<Command> thread)
-	{
+
+	private void parseScript(String filename, ArrayList<Command> thread) {
 		boolean found = false;
-		for(String s: names)
-		{
-			if(s.equals(filename))
-			{
+
+		for (String s: names) {
+			if (s.equals(filename)) {
 				found = true;
 				break;
 			}
 		}
-		if(found == true) return;
+
+		if(found == true) 
+			return;
+
 		System.out.println("Parsing " + filename);
 		names.add(filename);
-		try
-		{
+
+		try {
 			BufferedReader in = new BufferedReader(new FileReader(filename));
 			String nextLine;
 			int ln = 1;
-			while((nextLine = in.readLine()) != null)
-			{
+			while ((nextLine = in.readLine()) != null) {
 				parseLine(new Scanner(nextLine), thread, ln, filename);
 				ln ++;
 			}
 			in.close();
-		}
-		catch (FileNotFoundException ex)
-		{
+		} catch (FileNotFoundException ex) {
 			popUp("Error: script file \"" + filename + "\" not found.");
 			System.exit(1);
-		}
-		catch (Exception ex)
-		{
+		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 	}
-	private void init(String[] filename)
-	{
+
+	private void init(String[] filename) {
 		// Setup the menu
+
 		ready = false;
 		names = new ArrayList<String>();
 		buttonPanel = new JPanel();
@@ -775,25 +876,25 @@ public class JTailer extends JFrame implements ActionListener
 		Container contentPane = this.getContentPane();
 		contentPane.add(buttonPanel, BorderLayout.NORTH);
 		add(drawPanel);
-		try
-		{
+
+		try {
 			robot = new Robot();
-		}
-		catch (Exception ex)
-		{
+		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
-		JMenu tailMenu = new JMenu( "Script File" );
-		tailMenu.add( menuOpenScript );
-		this.menuOpenScript.addActionListener( this );
-		this.menuBar.add( tailMenu );
-		if(filename == null) this.setJMenuBar( this.menuBar );
-		this.setTitle( "Scripto v2.0" );
-		this.getContentPane().add( desktop, BorderLayout.CENTER );
-		this.setSize( 150, 50 );
+
+		JMenu tailMenu = new JMenu("Script File");
+		tailMenu.add(menuOpenScript);
+		this.menuOpenScript.addActionListener(this);
+		this.menuBar.add(tailMenu);
+		if(filename == null) this.setJMenuBar(this.menuBar);
+		this.setTitle("Scripto v2.0");
+		this.getContentPane().add(desktop, BorderLayout.CENTER);
+		this.setSize(150, 50);
 		Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
-		this.setLocation( d.width / 2 - 75, d.height / 2 - 25 );
-		this.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
+		this.setLocation(d.width / 2 - 75, d.height / 2 - 25);
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
 		frames = new ArrayList<TailerFrame>();
 		runthread = new RunnerFrame();
 		locs = new ArrayList<Location>();
@@ -802,93 +903,96 @@ public class JTailer extends JFrame implements ActionListener
 		counters = new ArrayList<Counter>();
 		comparisons = new ArrayList<Command>();
 		m = new Func("main");
-		if(!ready) this.StartorStop.setText("Exit");
-		if(filename != null)
-		{
-			for(String a: filename)	parseScript(a, m.cmds);
+
+		if (!ready) 
+			this.StartorStop.setText("Exit");
+
+		if (filename != null) {
+			for (String a: filename)
+				parseScript(a, m.cmds);
 			setup();
 		}
+
 		this.setVisible( true );
 	}
-	void setup()
-	{
+
+	void setup() {
 		threads = new ArrayList<RunnerFrame>();
 		m.locs = locs;
 		m.colors = colors;
 		m.funcs = funcs;
 		m.counters = counters;
 		m.comparisons = comparisons;
-		for(Func b: funcs)
-		{
+
+		for(Func b: funcs) {
 			b.locs = locs;
 			b.colors = colors;
 			b.counters = counters;
 			b.funcs = funcs;
-			b.comparisons = comparisons;
-			if(b.separate) 
-			{
+			b.comparisons = comparisons; 
+			if(b.separate) {
 				threads.add(new RunnerFrame(b, funcs));
 			}
 		}
+
 		runthread.tailer.mainfunc = m;
 		runthread.tailer.funcs = funcs;
-		for(TailerFrame f:frames)f.funcs = funcs;
+
+		for (TailerFrame f:frames)
+			f.funcs = funcs;
+
 		ready = true;
 		StartorStop.setText("Start");
 		this.setSize(150,50);
 		repaint();
-		
 	}
-	public void actionPerformed(ActionEvent e)
-	{
-		if( e.getSource() == this.menuOpenScript )
-		{
-			if(!ready)
-			{
+
+	public void actionPerformed(ActionEvent e) {
+		if (e.getSource() == this.menuOpenScript) {
+			if (!ready) {
 				JFileChooser fc = new JFileChooser();
-				int retval = fc.showOpenDialog( this );
-				if( retval == JFileChooser.APPROVE_OPTION )
-				{
+				int retval = fc.showOpenDialog(this);
+
+				if (retval == JFileChooser.APPROVE_OPTION) {
 					fn = fc.getSelectedFile().getAbsolutePath();
 					parseScript(fn, m.cmds);
 					this.setJMenuBar(null);
 					setup();
 				}
 			}
-		}
-		else if (e.getSource() == StartorStop) 
-		{
-			if(ready)
-			{
+		} else if (e.getSource() == StartorStop) {
+			if (ready) {
 				StartorStop.setText("Exit");
 				runthread.begin();
-				for(TailerFrame f: frames) f.begin();
-				for(RunnerFrame r: threads) r.begin();
+
+				for (TailerFrame f: frames) 
+					f.begin();
+				for (RunnerFrame r: threads) 
+					r.begin();
+
 				repaint();
 				ready = false;
 				return;
 			}
-			for(TailerFrame f: frames) f.stopTailing(); 
+			for (TailerFrame f: frames) 
+				f.stopTailing(); 
 			System.exit(0);
 		}
 	}
-	public static void main( String[] args )
-	{
+
+	public static void main(String[] args) {
 		JTailer tailer = null;
-		if(args.length == 0) 
-		{
+
+		if (args.length == 0) {
 			tailer = new JTailer();
-		}
-		else
-		{
+		} else {
 			tailer = new JTailer(args);
 		}
 	}
-	class DrawStuff extends JPanel 
-	{
+
+	class DrawStuff extends JPanel {
 		@Override
-		public void paintComponent(Graphics g) 
-		{
+		public void paintComponent(Graphics g) {
 			super.paintComponent(g);
 			g.drawString("Hello", getHeight() / 2, getWidth() / 2);
 		}
