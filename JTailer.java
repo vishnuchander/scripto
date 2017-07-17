@@ -443,8 +443,8 @@ public class JTailer extends JFrame implements ActionListener {
 		return new Command(k, rv);
 	}
 
-	Command shift(String token, Scanner line, int ln, String fn) {	
-		//dummy function for now. This will need to parse the line and then extract information from it, like what is being shifted.
+	Command shift(String token, Scanner line, int ln, String fn) {
+		//This allows shifting a point's coordinates left, up, right, or down after it has been set.
 		String direction = token;
 		token = parse(line, ln, fn);
 		int rv = isPoint(token);
