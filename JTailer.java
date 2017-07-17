@@ -369,7 +369,10 @@ public class JTailer extends JFrame implements ActionListener {
 			eMsg(ln, "Point " + token + " not found", fn);
 
 		String k = "nm";
-		if (token.equals("move")) k = "mv";
+
+		if (token.equals("move")) 
+			k = "mv";
+
 		return new Command(k, rv);
 	}
 
@@ -418,7 +421,7 @@ public class JTailer extends JFrame implements ActionListener {
 			eMsg(ln, "Too many parameters", fn);
 
 		String k = "rw";
-		if token.equals("wait")
+		if (token.equals("wait"))
 			k = "wt";
 		return new Command(k, n);
 	}
@@ -442,12 +445,21 @@ public class JTailer extends JFrame implements ActionListener {
 
 	Command shift(String token, Scanner line, int ln, String fn) {	
 		//dummy function for now. This will need to parse the line and then extract information from it, like what is being shifted.
-		switch(token) {
-			case "lshift": return new Command(token); 
-			case "rshift": return new Command(token); 
-			case "ushift": return new Command(token); 
-			default: return new Command(token); 
-			
+		String direction = token;
+		token = parse(line, ln, fn);
+		int rv = isPoint(token);
+		if (rv == -1) 
+			eMsg(ln, "Point " + token + " not found", fn);
+
+		switch(direction) {
+			case "lshift": 
+				return new Command("sl", rv, pInt(parse(line, ln, fn), ln, fn));
+			case "rshift": 
+				return new Command("sr", rv, pInt(parse(line, ln, fn), ln, fn));
+			case "ushift": 
+				return new Command("su", rv, pInt(parse(line, ln, fn), ln, fn));
+			default: 
+				return new Command("sd", rv, pInt(parse(line, ln, fn), ln, fn));
 		}
 	}
 
@@ -471,8 +483,8 @@ public class JTailer extends JFrame implements ActionListener {
 	}
 
 	void makeLFT(Scanner line, int ln, String fn) {
-		if (!line.hasNext()) e
-			Msg(ln, "Not enough parameters", fn);
+		if (!line.hasNext()) 
+			eMsg(ln, "Not enough parameters", fn);
 		String token;
 		String filename;
 
@@ -559,7 +571,7 @@ public class JTailer extends JFrame implements ActionListener {
 			eMsg(ln, "Counter not found", fn);
 		if (!line.hasNext()) 
 			eMsg(ln, "Not enough parameters", fn);
-		if (!line.hasNext()) 
+		if (!line.hasNextInt()) 
 			eMsg(ln, "Parameter must be a number", fn);
 
 		token = line.next();

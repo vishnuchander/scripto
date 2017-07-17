@@ -17,6 +17,11 @@ public class Location extends Point {
 		return name;
 	}
 
+	protected void moveLocation(int a, int b) {
+		x = a;
+		y = b;
+	}
+
 	Location(String n, int a, int b) {
 		x = a;
 		y = b;

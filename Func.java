@@ -6,8 +6,7 @@ import javax.swing.event.*;
 import javax.swing.*;
 import java.io.*;
 import java.util.*;
-public class Func
-{
+public class Func {
 	String name;
 	ArrayList<Command> cmds;
 	ArrayList<Counter> counters;
@@ -35,12 +34,15 @@ public class Func
 		times = 1;
 		separate = false;
 	}
+
 	public void runFunc(int index) {
 		funcs.get(index).doStuff();
 	}
+
 	public void addCommand(Command k) {
 		cmds.add(k);
 	}
+
 	private void fpause(int time) {
 		try {
 			Thread.sleep(time);
@@ -48,10 +50,11 @@ public class Func
 			ex.printStackTrace();
 		}
 	}
-	protected void naturalmove(Point p)
-	{
+
+	protected void naturalmove(Point p) {
 		Point c = MouseInfo.getPointerInfo().getLocation();
-		if (c == p) return;
+		if (c == p) 
+			return;
 		int mx = 0, my = 0;
 
 		mx = (c.x - p.x)/20;
@@ -62,52 +65,104 @@ public class Func
 			fpause(10);
 		}
 		r.mouseMove(p.x, p.y);
-		
 	}
+
 	private void naturalClick(int a) {
 		r.mousePress(a);
 		fpause(100);
 		r.mouseRelease(a);
 		fpause(100);
 	}
+
 	protected void check(Command k) {
 		Color p = r.getPixelColor(colors.get(k.index).x, colors.get(k.index).y);
 		System.out.println(p.toString());
 		System.out.println(colors.get(k.index).color.toString());
 
 		if (k.comparetoint) {
-			if(p.equals(colors.get(k.index).color)) return;
+			if (p.equals(colors.get(k.index).color)) 
+				return;
 			funcs.get(k.funcindex).doStuff();
 		} else {
-			if(!p.equals(colors.get(k.index).color)) return;
+			if (!p.equals(colors.get(k.index).color)) 
+				return;
 			funcs.get(k.funcindex).doStuff();
 		}
 	}
+
 	protected void execute(Command k) {
 		switch (k.cmd) {
-			case "mv": r.mouseMove(locs.get(k.index).x, locs.get(k.index).y); break;
-			case "nm": naturalmove(locs.get(k.index)); break;
-			case "ck": r.mousePress(k.index); r.mouseRelease(k.index); break;
-			case "md": r.mousePress(k.index); break;
-			case "mr": r.mouseRelease(k.index); break;
-			case "wt": fpause(k.index); break;
-			case "rw": fpause((int) (Math.random()*k.index)); break;
-			case "kp": r.keyPress(k.index); r.keyRelease(k.index); break;
-			case "kd": r.keyPress(k.index); break;
-			case "ku": r.keyRelease(k.index); break;
-			case "gt": case "ge": case "eq": case "le": case "lt": case "ne": cmp(k); break;
-			case "st": counters.get(k.index).num = Integer.parseInt(k.param); break;
-			case "rs": counters.get(k.index).num = (int) (Math.random()*Integer.parseInt(k.param)); break;
-			case "in": counters.get(k.index).num ++; break;
-			case "dc": counters.get(k.index).num --; break;
-			case "pt": System.out.printf(" %s", k.param); break;
-			case "lp": System.out.println(" " + k.param); break;
-			case "pc": System.out.printf(" %d", counters.get(k.index).num); break;
-			case "lc": System.out.println(" " + counters.get(k.index).num); break;
-			case "rn": funcs.get(k.index).doStuff(); break;
-			case "ch": check(k); break;
+			case "mv": 
+				r.mouseMove(locs.get(k.index).x, locs.get(k.index).y); 
+				break;
+			case "nm": 
+				naturalmove(locs.get(k.index)); 
+				break;
+			case "ck": 
+				r.mousePress(k.index); 
+				r.mouseRelease(k.index); 
+				break;
+			case "md": 
+				r.mousePress(k.index); 
+				break;
+			case "mr": 
+				r.mouseRelease(k.index); 
+				break;
+			case "wt": 
+				fpause(k.index); 
+				break;
+			case "rw": 
+				fpause((int) (Math.random()*k.index)); 
+				break;
+			case "kp": 
+				r.keyPress(k.index); 
+				r.keyRelease(k.index); 
+				break;
+			case "kd": 
+				r.keyPress(k.index); 
+				break;
+			case "ku": 
+				r.keyRelease(k.index); 
+				break;
+			case "gt": case "ge": case "eq": case "le": case "lt": case "ne": 
+				cmp(k); 
+				break;
+			case "st": 
+				counters.get(k.index).num = Integer.parseInt(k.param); 
+				break;
+			case "rs": 
+				counters.get(k.index).num = (int) (Math.random()*Integer.parseInt(k.param)); 
+				break;
+			case "in": 
+				counters.get(k.index).num ++; 
+				break;
+			case "dc": 
+				counters.get(k.index).num --; 
+				break;
+			case "pt": 
+				System.out.printf(" %s", k.param); 
+				break;
+			case "lp": 
+				System.out.println(" " + k.param); 
+				break;
+			case "pc": 
+				System.out.printf(" %d", counters.get(k.index).num); 
+				break;
+			case "lc": 
+				System.out.println(" " + counters.get(k.index).num); 
+				break;
+			case "rn": 
+				funcs.get(k.index).doStuff(); 
+				break;
+			case "su": case "sd": case "sl": case "sr": 
+				shift(k); 
+				break;
+			case "ch": 
+				check(k); 
+				break;
 		}
 	}
+
 	void cmp(Command k) {
 		int comparevalue;
 		if (k.comparetoint) {
@@ -117,6 +172,7 @@ public class Func
 		}
 		compare(k.cmd, counters.get(k.index).num, comparevalue, k.funcindex);
 	}
+
 	private void compare(String cmd, int a, int b, int index) {
 		switch (cmd) {
 			case "gt": if (!(a > b)) {return;} break;
@@ -128,14 +184,34 @@ public class Func
 		}
 		execute(comparisons.get(index));
 	}
+
 	public void doStuff() {
 		int i = 1; 
 		while (true) {
 			for (Command k: cmds) {
 				execute(k);
 			}
-			if ((times != -1) && (i == times)) break;
+			if ((times != -1) && (i == times)) 
+				break;
 			i++;
+		}
+	}
+
+	private void shift(Command k) {
+		Location p = locs.get(k.index);
+		switch (k.cmd) {
+			case "su":
+				p.moveLocation(p.x, p.y - k.funcindex);
+				break;
+			case "sd":
+				p.moveLocation(p.x, p.y + k.funcindex);
+				break;
+			case "sl":
+				p.moveLocation(p.x - k.funcindex, p.y);
+				break;
+			case "sr":
+				p.moveLocation(p.x + k.funcindex, p.y);
+				break;
 		}
 	}
 }

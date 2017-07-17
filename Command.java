@@ -50,4 +50,10 @@ public class Command {
 		funcindex = e;
 		comparetoint = f;
 	}
+
+	public Command(String command, int pointIndex, int distance) {
+		cmd = command;
+		index = pointIndex;
+		funcindex = distance;
+	}
 }
